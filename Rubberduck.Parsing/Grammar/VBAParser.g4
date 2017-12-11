@@ -294,8 +294,8 @@ singleLetter : unrestrictedIdentifier;
 // a module, even those with a first character that would otherwise fall outside this range if it was 
 // interpreted as a <letter-range> from A-Z.""
 universalLetterRange : upperCaseA whiteSpace? MINUS whiteSpace? upperCaseZ;
-upperCaseA : {_input.Lt(1).Text.Equals("A")}? unrestrictedIdentifier;
-upperCaseZ : {_input.Lt(1).Text.Equals("Z")}? unrestrictedIdentifier;
+upperCaseA : {TokenStream.LT(1).Text.Equals("A")}? unrestrictedIdentifier;
+upperCaseZ : {TokenStream.LT(1).Text.Equals("Z")}? unrestrictedIdentifier;
 letterRange : firstLetter whiteSpace? MINUS whiteSpace? lastLetter;
 firstLetter : unrestrictedIdentifier;
 lastLetter : unrestrictedIdentifier;
@@ -568,7 +568,7 @@ complexType :
 fieldLength : MULT whiteSpace? (numberLiteral | identifierValue);
 
 //Statement labels can only appear at the start of a line.
-statementLabelDefinition : {_input.La(-1) == NEWLINE}? (combinedLabels | identifierStatementLabel | standaloneLineNumberLabel);
+statementLabelDefinition : {TokenStream.LA(-1) == NEWLINE}? (combinedLabels | identifierStatementLabel | standaloneLineNumberLabel);
 identifierStatementLabel : unrestrictedIdentifier whiteSpace? COLON; 
 standaloneLineNumberLabel : 
 	lineNumberLabel whiteSpace? COLON
