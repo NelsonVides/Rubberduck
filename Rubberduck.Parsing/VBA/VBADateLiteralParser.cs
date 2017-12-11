@@ -27,7 +27,7 @@ namespace Rubberduck.Parsing.VBA
             VBADateParser.CompilationUnitContext tree;
             try
             {
-                parser.Interpreter.PredictionMode = PredictionMode.Sll;
+                parser.Interpreter.PredictionMode = PredictionMode.SLL;
                 tree = parser.compilationUnit();
             }
             catch (Exception ex)
@@ -35,7 +35,7 @@ namespace Rubberduck.Parsing.VBA
                 Logger.Warn(ex, "SLL mode failed for {0}. Retrying using LL.", date);
                 tokens.Reset();
                 parser.Reset();
-                parser.Interpreter.PredictionMode = PredictionMode.Ll;
+                parser.Interpreter.PredictionMode = PredictionMode.LL;
                 tree = parser.compilationUnit();
             }
             return tree.dateLiteral();

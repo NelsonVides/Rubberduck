@@ -5,8 +5,8 @@ namespace Rubberduck.Parsing.Symbols.ParsingExceptions
 {
     public class SyntaxErrorNotificationListener : BaseErrorListener
     {
-        public event EventHandler<SyntaxErrorEventArgs> OnSyntaxError;
-        public override void SyntaxError(IRecognizer recognizer, IToken offendingSymbol, int line, int charPositionInLine, string msg, RecognitionException e)
+        public event EventHandler<SyntaxErrorEventArgs> OnSyntaxError; //NOTE: new parameter added, but this class is never referenced so nothing to break (?)
+        public override void SyntaxError(System.IO.TextWriter output, IRecognizer recognizer, IToken offendingSymbol, int line, int charPositionInLine, string msg, RecognitionException e)
         {
             var info = new SyntaxErrorInfo(msg, e, offendingSymbol, line, charPositionInLine);
             NotifySyntaxError(info);

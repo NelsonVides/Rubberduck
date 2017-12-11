@@ -25,7 +25,7 @@ namespace Rubberduck.Parsing.VBA
             ParserRuleContext tree;
             try
             {
-                parser.Interpreter.PredictionMode = PredictionMode.Sll;
+                parser.Interpreter.PredictionMode = PredictionMode.SLL;
                 tree = parser.expression();
             }
             catch (Exception ex)
@@ -33,7 +33,7 @@ namespace Rubberduck.Parsing.VBA
                 Logger.Warn(ex, "SLL mode failed for {0}. Retrying using LL.", expression);
                 tokens.Reset();
                 parser.Reset();
-                parser.Interpreter.PredictionMode = PredictionMode.Ll;
+                parser.Interpreter.PredictionMode = PredictionMode.LL;
                 tree = parser.expression();
             }
             return tree;

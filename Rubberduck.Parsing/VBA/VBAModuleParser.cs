@@ -21,7 +21,7 @@ namespace Rubberduck.Parsing.VBA
             ParserRuleContext tree;
             try
             {
-                parser.Interpreter.PredictionMode = PredictionMode.Sll;
+                parser.Interpreter.PredictionMode = PredictionMode.SLL;
                 tree = parser.startRule();
             }
             catch (ParsePassSyntaxErrorException syntaxErrorException)
@@ -33,7 +33,7 @@ namespace Rubberduck.Parsing.VBA
                 Logger.Debug(syntaxErrorException, "SLL mode exception");
                 moduleTokens.Reset();
                 parser.Reset();
-                parser.Interpreter.PredictionMode = PredictionMode.Ll;
+                parser.Interpreter.PredictionMode = PredictionMode.LL;
                 tree = parser.startRule();
             }
             catch (Exception exception)
@@ -42,7 +42,7 @@ namespace Rubberduck.Parsing.VBA
                 Logger.Debug(exception, "SLL mode exception");
                 moduleTokens.Reset();
                 parser.Reset();
-                parser.Interpreter.PredictionMode = PredictionMode.Ll;
+                parser.Interpreter.PredictionMode = PredictionMode.LL;
                 tree = parser.startRule();
             }
             foreach (var listener in listeners)

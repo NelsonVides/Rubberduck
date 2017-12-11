@@ -2144,7 +2144,7 @@ End Sub
             // Don't remove this line otherwise we won't get notified of parser failures.
             parser.ErrorHandler = new BailErrorStrategy();
             //parser.AddErrorListener(new ExceptionErrorListener());
-            parser.Interpreter.PredictionMode = predictionMode ?? PredictionMode.Sll;
+            parser.Interpreter.PredictionMode = predictionMode ?? PredictionMode.SLL;
             ParserRuleContext tree;
             try
             {
@@ -2152,7 +2152,7 @@ End Sub
             }
             catch (Exception exception)
             {
-                if (predictionMode == null || predictionMode == PredictionMode.Ll)
+                if (predictionMode == null || predictionMode == PredictionMode.LL)
                 {
                     // If SLL fails we want to get notified ASAP so we can fix it, that's why we don't retry using LL.
                     // If LL mode fails, we're done.
@@ -2160,7 +2160,7 @@ End Sub
                 }
 
                 Debug.WriteLine(exception, "SLL Parser Exception");
-                return Parse(code, PredictionMode.Ll);
+                return Parse(code, PredictionMode.LL);
             }
             return Tuple.Create(parser, tree);
         }

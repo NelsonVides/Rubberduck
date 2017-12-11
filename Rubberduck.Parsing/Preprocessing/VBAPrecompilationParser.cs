@@ -20,7 +20,7 @@ namespace Rubberduck.Parsing.PreProcessing
             VBAConditionalCompilationParser.CompilationUnitContext tree;
             try
             {
-                parser.Interpreter.PredictionMode = PredictionMode.Sll;
+                parser.Interpreter.PredictionMode = PredictionMode.SLL;
                 tree = parser.compilationUnit();
             }
             catch (ParsePassSyntaxErrorException syntaxErrorException)
@@ -32,7 +32,7 @@ namespace Rubberduck.Parsing.PreProcessing
                 Logger.Debug(syntaxErrorException, "SLL mode exception");
                 unprocessedTokenStream.Reset();
                 parser.Reset();
-                parser.Interpreter.PredictionMode = PredictionMode.Ll;
+                parser.Interpreter.PredictionMode = PredictionMode.LL;
                 tree = parser.compilationUnit();
             }
             catch (Exception exception)
@@ -41,7 +41,7 @@ namespace Rubberduck.Parsing.PreProcessing
                 Logger.Debug(exception, "SLL mode exception");
                 unprocessedTokenStream.Reset();
                 parser.Reset();
-                parser.Interpreter.PredictionMode = PredictionMode.Ll;
+                parser.Interpreter.PredictionMode = PredictionMode.LL;
                 tree = parser.compilationUnit();
             }
             return tree;
