@@ -304,8 +304,8 @@ namespace Rubberduck.Inspections.Concrete
                 || (originalDeclaration.DeclarationType == DeclarationType.EnumerationMember
                     && userDeclaration.DeclarationType == DeclarationType.Enumeration)))
             { 
-                    var originalDeclarationIndex = originalDeclaration.Context.start.StartIndex;
-                    var userDeclarationIndex = userDeclaration.Context.start.StartIndex;
+                    var originalDeclarationIndex = originalDeclaration.Context.Start.StartIndex;
+                    var userDeclarationIndex = userDeclaration.Context.Start.StartIndex;
 
                     // First declaration wins
                     return originalDeclarationIndex > userDeclarationIndex 
