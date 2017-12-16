@@ -588,20 +588,20 @@ visibility : PRIVATE | PUBLIC | FRIEND | GLOBAL;
 expression :
     // Literal Expression has to come before lExpression, otherwise it'll be classified as simple name expression instead.	
 	whiteSpace? LPAREN whiteSpace? expression whiteSpace? RPAREN                                    # parenthesizedExpr
+	| NOT whiteSpace? expression                                                                    # logicalNotOp
 	| literalExpression                                                                             # literalExpr
-	| lExpression                                                                                   # lExpr
 	| builtInType                                                                                   # builtInTypeExpr
 	| TYPEOF whiteSpace expression                                                                  # typeofexpr        // To make the grammar SLL, the type-of-is-expression is actually the child of an IS relational op.
 	| NEW whiteSpace expression                                                                     # newExpr
 	| expression whiteSpace? POW whiteSpace? expression                                             # powOp
 	| MINUS whiteSpace? expression                                                                  # unaryMinusOp
+	| lExpression                                                                                   # lExpr
 	| expression whiteSpace? (MULT | DIV) whiteSpace? expression                                    # multOp
 	| expression whiteSpace? INTDIV whiteSpace? expression                                          # intDivOp
 	| expression whiteSpace? MOD whiteSpace? expression                                             # modOp
 	| expression whiteSpace? (PLUS | MINUS) whiteSpace? expression                                  # addOp
 	| expression whiteSpace? AMPERSAND whiteSpace? expression                                       # concatOp
 	| expression whiteSpace? (EQ | NEQ | LT | GT | LEQ | GEQ | LIKE | IS) whiteSpace? expression    # relationalOp
-	| NOT whiteSpace? expression                                                                    # logicalNotOp
 	| expression whiteSpace? AND whiteSpace? expression                                             # logicalAndOp
 	| expression whiteSpace? OR whiteSpace? expression                                              # logicalOrOp
 	| expression whiteSpace? XOR whiteSpace? expression                                             # logicalXorOp
