@@ -1,8 +1,12 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using Rubberduck.Settings;
 using Rubberduck.Common;
 using NLog;
+using Rubberduck.Parsing.Common;
+using Rubberduck.Root;
 using Rubberduck.SettingsProvider;
 using Rubberduck.UI.Command;
 
@@ -38,6 +42,8 @@ namespace Rubberduck.UI.Settings
             ImportButtonCommand = new DelegateCommand(LogManager.GetCurrentClassLogger(), _ => ImportSettings());
         }
 
+        public List<ExperimentalFeatures> ExperimentalFeatures { get; set; }
+
         public ObservableCollection<DisplayLanguageSetting> Languages { get; set; } 
 
         private DisplayLanguageSetting _selectedLanguage;
@@ -65,6 +71,14 @@ namespace Rubberduck.UI.Settings
                     _hotkeys = value;
                     OnPropertyChanged();
                 }
+            }
+        }
+
+        public bool ShouldDisplayHotkeyModificationLabel
+        {
+            get
+            {
+                return _hotkeys.Any(s => !s.IsValid);
             }
         }
 
@@ -153,20 +167,6 @@ namespace Rubberduck.UI.Settings
             }
         }
 
-        private bool _sourceControlEnabled;
-        public bool SourceControlEnabled
-        {
-            get => _sourceControlEnabled;
-            set
-            {
-                if (_sourceControlEnabled != value)
-                {
-                    _sourceControlEnabled = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
-
         public CommandBase ShowLogFolderCommand { get; }
 
         private void ShowLogFolder()
@@ -190,13 +190,13 @@ namespace Rubberduck.UI.Settings
             return new Rubberduck.Settings.GeneralSettings
             {
                 Language = SelectedLanguage,
-                ShowSplash = ShowSplashAtStartup,
-                CheckVersion = CheckVersionAtStartup,
-                SmartIndenterPrompted = _indenterPrompted,
-                AutoSaveEnabled = AutoSaveEnabled,
+                CanShowSplash = ShowSplashAtStartup,
+                CanCheckVersion = CheckVersionAtStartup,
+                IsSmartIndenterPrompted = _indenterPrompted,
+                IsAutoSaveEnabled = AutoSaveEnabled,
                 AutoSavePeriod = AutoSavePeriod,
                 MinimumLogLevel = SelectedLogLevel.Ordinal,
-                SourceControlEnabled = SourceControlEnabled
+                EnableExperimentalFeatures = ExperimentalFeatures
             };
         }
 
@@ -204,13 +204,20 @@ namespace Rubberduck.UI.Settings
         {
             SelectedLanguage = Languages.First(l => l.Code == general.Language.Code);
             Hotkeys = new ObservableCollection<HotkeySetting>(hottkey.Settings);
-            ShowSplashAtStartup = general.ShowSplash;
-            CheckVersionAtStartup = general.CheckVersion;
-            _indenterPrompted = general.SmartIndenterPrompted;
-            AutoSaveEnabled = general.AutoSaveEnabled;
+            ShowSplashAtStartup = general.CanShowSplash;
+            CheckVersionAtStartup = general.CanCheckVersion;
+            _indenterPrompted = general.IsSmartIndenterPrompted;
+            AutoSaveEnabled = general.IsAutoSaveEnabled;
             AutoSavePeriod = general.AutoSavePeriod;
             SelectedLogLevel = LogLevels.First(l => l.Ordinal == general.MinimumLogLevel);
-            SourceControlEnabled = general.SourceControlEnabled;
+            
+            ExperimentalFeatures = RubberduckIoCInstaller.AssembliesToRegister()
+                .SelectMany(s => s.DefinedTypes)
+                .Where(w => Attribute.IsDefined(w, typeof(ExperimentalAttribute)))
+                .SelectMany(s => s.CustomAttributes.Where(a => a.ConstructorArguments.Any()).Select(a => (string)a.ConstructorArguments.First().Value))
+                .Distinct()
+                .Select(s => new ExperimentalFeatures { IsEnabled = general.EnableExperimentalFeatures.SingleOrDefault(d => d.Key == s)?.IsEnabled ?? false, Key = s })
+                .ToList();
         }
 
         private void ImportSettings()
@@ -228,7 +235,7 @@ namespace Rubberduck.UI.Settings
                 var hkService = new XmlPersistanceService<HotkeySettings> { FilePath = dialog.FileName };
                 var hotkey = hkService.Load(new HotkeySettings());
                 //Always assume Smart Indenter registry import has been prompted if importing.
-                general.SmartIndenterPrompted = true;
+                general.IsSmartIndenterPrompted = true;
                 TransferSettingsToView(general, hotkey);
             }
         }

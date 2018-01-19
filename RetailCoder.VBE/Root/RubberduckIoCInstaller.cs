@@ -11,6 +11,7 @@ using Castle.MicroKernel.Resolvers.SpecializedResolvers;
 using Castle.MicroKernel.SubSystems.Configuration;
 using Castle.Windsor;
 using Rubberduck.Common;
+using Rubberduck.Common.Hotkeys;
 using Rubberduck.Navigation.CodeExplorer;
 using Rubberduck.Parsing;
 using Rubberduck.Parsing.ComReflection;
@@ -44,7 +45,7 @@ using Rubberduck.VBEditor.SafeComWrappers.Abstract;
 using Rubberduck.VBEditor.SafeComWrappers.Office.Core.Abstract;
 using Component = Castle.MicroKernel.Registration.Component;
 using Rubberduck.UI.CodeMetrics;
-using Rubberduck.Navigation.CodeMetrics;
+using Rubberduck.Parsing.Common;
 
 namespace Rubberduck.Root
 {
@@ -136,6 +137,8 @@ namespace Rubberduck.Root
 
             RegisterWindowsHooks(container);
 
+            RegisterHotkeyFactory(container);
+
             var assembliesToRegister = AssembliesToRegister().ToArray();
 
             RegisterConfiguration(container, assembliesToRegister);
@@ -155,7 +158,9 @@ namespace Rubberduck.Root
         {
             foreach (var assembly in assembliesToRegister)
             {
-                container.Register(Classes.FromAssembly(assembly)
+                var assemblyTypes = GetIoCRegisteredTypes(assembly);
+
+                container.Register(Classes.From(assemblyTypes)
                     .InSameNamespaceAs<Configuration>()
                     .WithService.AllInterfaces()
                     .LifestyleSingleton());
@@ -181,11 +186,15 @@ namespace Rubberduck.Root
                 .LifestyleTransient());
         }
 
-        private static void ApplyDefaultInterfaceConvention(IWindsorContainer container, Assembly[] assembliesToRegister)
+        private void ApplyDefaultInterfaceConvention(IWindsorContainer container, Assembly[] assembliesToRegister)
         {
             foreach (var assembly in assembliesToRegister)
             {
-                container.Register(Classes.FromAssembly(assembly)
+                var assemblyTypes = GetIoCRegisteredTypes(assembly);
+
+                assemblyTypes.Any(t => t.Name == nameof(IMessageBox));
+                
+                container.Register(Classes.From(assemblyTypes)
                     .Where(type => type.Namespace != null
                                    && !type.Namespace.StartsWith("Rubberduck.VBEditor.SafeComWrappers")
                                    && !type.Name.Equals("SelectionChangeService")
@@ -198,11 +207,13 @@ namespace Rubberduck.Root
             }
         }
 
-        private static void RegisterFactories(IWindsorContainer container, Assembly[] assembliesToRegister)
+        private void RegisterFactories(IWindsorContainer container, Assembly[] assembliesToRegister)
         {
             foreach (var assembly in assembliesToRegister)
             {
-                container.Register(Types.FromAssembly(assembly)
+                var assemblyTypes = GetIoCRegisteredTypes(assembly);
+
+                container.Register(Types.From(assemblyTypes)
                     .Where(type => type.IsInterface && type.Name.EndsWith("Factory"))
                     .Configure(c => c.AsFactory())
                     .LifestyleSingleton());
@@ -219,11 +230,13 @@ namespace Rubberduck.Root
                 .LifestyleSingleton());
         }
 
-        private static void RegisterQuickFixes(IWindsorContainer container, Assembly[] assembliesToRegister)
+        private void RegisterQuickFixes(IWindsorContainer container, Assembly[] assembliesToRegister)
         {
             foreach (var assembly in assembliesToRegister)
             {
-                container.Register(Classes.FromAssembly(assembly)
+                var assemblyTypes = GetIoCRegisteredTypes(assembly);
+
+                container.Register(Classes.From(assemblyTypes)
                     .BasedOn<IQuickFix>()
                     .WithService.Base()
                     .WithService.Self()
@@ -231,22 +244,26 @@ namespace Rubberduck.Root
             }
         }
 
-        private static void RegisterInspections(IWindsorContainer container, Assembly[] assembliesToRegister)
+        private void RegisterInspections(IWindsorContainer container, Assembly[] assembliesToRegister)
         {
             foreach (var assembly in assembliesToRegister)
             {
-                container.Register(Classes.FromAssembly(assembly)
+                var assemblyTypes = GetIoCRegisteredTypes(assembly);
+
+                container.Register(Classes.From(assemblyTypes)
                     .BasedOn<IInspection>()
                     .WithService.Base()
                     .LifestyleTransient());
             }
         }
 
-        private static void RegisterParseTreeInspections(IWindsorContainer container, Assembly[] assembliesToRegister)
+        private void RegisterParseTreeInspections(IWindsorContainer container, Assembly[] assembliesToRegister)
         {
             foreach (var assembly in assembliesToRegister)
             {
-                container.Register(Classes.FromAssembly(assembly)
+                var assemblyTypes = GetIoCRegisteredTypes(assembly);
+
+                container.Register(Classes.From(assemblyTypes)
                     .BasedOn<IParseTreeInspection>()
                     .WithService.Base()
                     .WithService.Select(new[]{typeof(IInspection)})
@@ -257,9 +274,7 @@ namespace Rubberduck.Root
         private void RegisterRubberduckMenu(IWindsorContainer container)
         {
             const int windowMenuId = 30009;
-            var commandBars = _vbe.CommandBars;
-            var menuBar = commandBars[MenuBar];
-            var controls = menuBar.Controls;
+            var controls = MainCommandBarControls(MenuBar);
             var beforeIndex = FindRubberduckMenuInsertionIndex(controls, windowMenuId);
             var menuItemTypes = RubberduckMenuItems();
             RegisterMenu<RubberduckParentMenu>(container, controls, beforeIndex, menuItemTypes);
@@ -296,24 +311,36 @@ namespace Rubberduck.Root
         {
             for (var i = 1; i <= controls.Count; i++)
             {
-                var item = controls[i];
-                if (item.IsBuiltIn && item.Id == beforeId)
+                using (var item = controls[i])
                 {
-                    return i;
+                    if (item.IsBuiltIn && item.Id == beforeId)
+                    {
+                        return i;
+                    }
                 }
             }
 
             return controls.Count;
         }
 
+        private ICommandBarControls MainCommandBarControls(int commandBarIndex)
+        {
+            ICommandBarControls controls;
+            using (var commandBars = _vbe.CommandBars)
+            {
+                using (var menuBar = commandBars[commandBarIndex])
+                {
+                    controls = menuBar.Controls;
+                }
+            }
+            return controls;
+        }
+
         private void RegisterCodePaneContextMenu(IWindsorContainer container)
         {
             const int listMembersMenuId = 2529;
-            var commandBars = _vbe.CommandBars;
-            var menuBar = commandBars[CodeWindow];
-            var controls = menuBar.Controls;
-            var beforeControl = controls.FirstOrDefault(control => control.Id == listMembersMenuId);
-            var beforeIndex = beforeControl == null ? 1 : beforeControl.Index;
+            var controls = MainCommandBarControls(CodeWindow);
+            var beforeIndex = FindRubberduckMenuInsertionIndex(controls, listMembersMenuId);
             var menuItemTypes = CodePaneContextMenuItems();
             RegisterMenu<CodePaneContextParentMenu>(container, controls, beforeIndex, menuItemTypes);
         }
@@ -333,11 +360,8 @@ namespace Rubberduck.Root
         private void RegisterFormDesignerContextMenu(IWindsorContainer container)
         {
             const int viewCodeMenuId = 2558;
-            var commandBars = _vbe.CommandBars;
-            var menuBar = commandBars[MsForms];
-            var controls = menuBar.Controls;
-            var beforeControl = controls.FirstOrDefault(control => control.Id == viewCodeMenuId);
-            var beforeIndex = beforeControl == null ? 1 : beforeControl.Index;
+            var controls = MainCommandBarControls(MsForms);
+            var beforeIndex = FindRubberduckMenuInsertionIndex(controls, viewCodeMenuId);
             var menuItemTypes = FormDesignerContextMenuItems();
             RegisterMenu<FormDesignerContextParentMenu>(container, controls, beforeIndex, menuItemTypes);
         }
@@ -354,11 +378,8 @@ namespace Rubberduck.Root
         private void RegisterFormDesignerControlContextMenu(IWindsorContainer container)
         {
             const int viewCodeMenuId = 2558;
-            var commandBars = _vbe.CommandBars;
-            var menuBar = commandBars[MsFormsControl];
-            var controls = menuBar.Controls;
-            var beforeControl = controls.FirstOrDefault(control => control.Id == viewCodeMenuId);
-            var beforeIndex = beforeControl == null ? 1 : beforeControl.Index;
+            var controls = MainCommandBarControls(MsFormsControl);
+            var beforeIndex = FindRubberduckMenuInsertionIndex(controls, viewCodeMenuId);
             var menuItemTypes = FormDesignerContextMenuItems();
             RegisterMenu<FormDesignerControlContextParentMenu>(container, controls, beforeIndex, menuItemTypes);
         }
@@ -366,18 +387,15 @@ namespace Rubberduck.Root
         private void RegisterProjectExplorerContextMenu(IWindsorContainer container)
         {
             const int projectPropertiesMenuId = 2578;
-            var commandBars = _vbe.CommandBars;
-            var menuBar = commandBars[ProjectWindow];
-            var controls = menuBar.Controls;
-            var beforeControl = controls.FirstOrDefault(control => control.Id == projectPropertiesMenuId);
-            var beforeIndex = beforeControl == null ? 1 : beforeControl.Index;
+            var controls = MainCommandBarControls(ProjectWindow);
+            var beforeIndex = FindRubberduckMenuInsertionIndex(controls, projectPropertiesMenuId);
             var menuItemTypes = ProjectWindowContextMenuItems();
             RegisterMenu<ProjectWindowContextParentMenu>(container, controls, beforeIndex, menuItemTypes);
         }
 
         private static Type[] ProjectWindowContextMenuItems()
         {
-            return new Type[]
+            return new[]
             {
                 typeof(ProjectExplorerRefactorRenameCommandMenuItem),
                 typeof(FindSymbolCommandMenuItem),
@@ -396,7 +414,7 @@ namespace Rubberduck.Root
 
         private static Type[] RubberduckCommandBarItems()
         {
-            return new Type[]
+            return new[]
             {
                 typeof(ReparseCommandMenuItem),
                 typeof(ShowParserErrorsCommandMenuItem),
@@ -428,7 +446,7 @@ namespace Rubberduck.Root
 
         private static Type[] UnitTestingMenuItems()
         {
-            return new Type[]
+            return new[]
             {
                 typeof(RunAllTestsCommandMenuItem),
                 typeof(TestExplorerCommandMenuItem),
@@ -440,7 +458,7 @@ namespace Rubberduck.Root
 
         private static Type[] RefactoringsMenuItems()
         {
-            return new Type[]
+            return new[]
             {
                 typeof(CodePaneRefactorRenameCommandMenuItem),
 #if DEBUG
@@ -459,7 +477,7 @@ namespace Rubberduck.Root
 
         private static Type[] NavigateMenuItems()
         {
-            return new Type[]
+            return new[]
             {
                 typeof(CodeExplorerCommandMenuItem),
 #if DEBUG
@@ -474,7 +492,7 @@ namespace Rubberduck.Root
 
         private static Type[] SmartIndenterMenuItems()
         {
-            return new Type[]
+            return new[]
             {
                 typeof(IndentCurrentProcedureCommandMenuItem),
                 typeof(IndentCurrentModuleCommandMenuItem),
@@ -493,7 +511,7 @@ namespace Rubberduck.Root
                 typeof(ExportAllCommandMenuItem)
             };
 
-            if (_initialSettings.SourceControlEnabled)
+            if (_initialSettings.EnableExperimentalFeatures.Any(a => a.Key == nameof(RubberduckUI.GeneralSettings_EnableSourceControl) && a.IsEnabled))
             {
                 items.Add(typeof(SourceControlCommandMenuItem));
             }
@@ -560,7 +578,7 @@ namespace Rubberduck.Root
 
         private void RegisterCommandsWithPresenters(IWindsorContainer container)
         {
-            if (_initialSettings.SourceControlEnabled)
+            if (_initialSettings.EnableExperimentalFeatures.Any(a => a.Key == nameof(RubberduckUI.GeneralSettings_EnableSourceControl) && a.IsEnabled))
             {
                 container.Register(Component.For<CommandBase>()
                     .ImplementedBy<SourceControlCommand>()
@@ -632,12 +650,7 @@ namespace Rubberduck.Root
         private void RegisterWindowsHooks(IWindsorContainer container)
         {
             var mainWindowHwnd = (IntPtr) _vbe.MainWindow.HWnd;
-
-            container.Register(Component.For<IAttachable>()
-                .ImplementedBy<TimerHook>()
-                .DependsOn(Dependency.OnValue<IntPtr>(mainWindowHwnd))
-                .LifestyleSingleton());
-
+            
             container.Register(Component.For<IRubberduckHooks>()
                 .ImplementedBy<RubberduckHooks>()
                 .DependsOn(Dependency.OnValue<IntPtr>(mainWindowHwnd))
@@ -790,7 +803,7 @@ namespace Rubberduck.Root
                 .LifestyleSingleton());
         }
 
-        private IEnumerable<Assembly> AssembliesToRegister()
+        public static IEnumerable<Assembly> AssembliesToRegister()
         {
             var assemblies = new[]
                 {
@@ -803,7 +816,7 @@ namespace Rubberduck.Root
             return assemblies;
         }
 
-        private IEnumerable<Assembly> FindPlugins()
+        private static IEnumerable<Assembly> FindPlugins()
         {
             var assemblies = new List<Assembly>();
             var basePath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
@@ -851,6 +864,24 @@ namespace Rubberduck.Root
             container.Register(Component.For<IVBE>().Instance(_vbe));
             container.Register(Component.For<IAddIn>().Instance(_addin));
             container.Register(Component.For<ICommandBars>().Instance(_vbe.CommandBars)); //note: This registration makes Castle Windsor inject _vbe_CommandBars in all ICommandBars Parent properties.
+        }
+
+        private static void RegisterHotkeyFactory(IWindsorContainer container)
+        {
+            container.Register(Component.For<HotkeyFactory>().LifestyleSingleton());
+        }
+
+        private IEnumerable<TypeInfo> GetIoCRegisteredTypes(Assembly assembly)
+        {
+            return assembly.DefinedTypes
+                .Where(w =>
+                {
+                    var attribute = w.CustomAttributes.FirstOrDefault(f => f.AttributeType == typeof(ExperimentalAttribute));
+                    var ctorArg = attribute?.ConstructorArguments.Any() == true ? (string)attribute.ConstructorArguments.First().Value : string.Empty;
+
+                    return attribute == null ||
+                           _initialSettings.EnableExperimentalFeatures.Any(a => a.Key == ctorArg && a.IsEnabled);
+                });
         }
     }
 }

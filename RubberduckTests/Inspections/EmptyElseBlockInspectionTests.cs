@@ -1,17 +1,17 @@
 ﻿using System.Linq;
 using System.Threading;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using RubberduckTests.Mocks;
 using Rubberduck.Inspections.Concrete;
 using Rubberduck.Parsing.Inspections.Resources;
 
 namespace RubberduckTests.Inspections
 {
-    [TestClass, Ignore]
+    [TestFixture]
     public class EmptyElseBlockInspectionTests
     {
-        [TestMethod]
-        [TestCategory("Inspections")]
+        [Test]
+        [Category("Inspections")]
         public void InspectionType()
         {
             var inspection = new EmptyElseBlockInspection(null);
@@ -20,8 +20,8 @@ namespace RubberduckTests.Inspections
             Assert.AreEqual(expectedInspection, inspection.InspectionType);
         }
 
-        [TestMethod]
-        [TestCategory("Inspections")]
+        [Test]
+        [Category("Inspections")]
         public void InspectionName()
         {
             const string expectedName = nameof(EmptyElseBlockInspection);
@@ -30,8 +30,8 @@ namespace RubberduckTests.Inspections
             Assert.AreEqual(expectedName, inspection.Name);
         }
 
-        [TestMethod]
-        [TestCategory("Inspections")]
+        [Test]
+        [Category("Inspections")]
         public void EmptyElseBlock_DoesntFireOnEmptyIfBlock()
         {
             const string inputcode =
@@ -52,12 +52,12 @@ End Sub";
             }
         }
 
-        [TestMethod]
-        [TestCategory("Inspections")]
+        [Test]
+        [Category("Inspections")]
         public void EmptyElseBlock_HasNoContent()
         {
             const string inputcode =
-                @"Sub Foo()
+@"Sub Foo()
     If True Then
     Else
     End If
@@ -66,7 +66,6 @@ End Sub";
             var vbe = MockVbeBuilder.BuildFromSingleStandardModule(inputcode, out _);
             using (var state = MockParser.CreateAndParse(vbe.Object))
             {
-
                 var inspection = new EmptyElseBlockInspection(state);
                 var inspector = InspectionsHelper.GetInspector(inspection);
                 var actualResults = inspector.FindIssuesAsync(state, CancellationToken.None).Result;
@@ -76,8 +75,8 @@ End Sub";
             }
         }
 
-        [TestMethod]
-        [TestCategory("Inspections")]
+        [Test]
+        [Category("Inspections")]
         public void EmptyElseBlock_HasQuoteComment()
         {
             const string inputCode =
@@ -100,8 +99,8 @@ End Sub";
             }
         }
 
-        [TestMethod]
-        [TestCategory("Inspections")]
+        [Test]
+        [Category("Inspections")]
         public void EmptyElseBlock_HasRemComment()
         {
             const string inputCode =
@@ -125,8 +124,8 @@ End Sub";
             }
         }
 
-        [TestMethod]
-        [TestCategory("Inspections")]
+        [Test]
+        [Category("Inspections")]
         public void EmptyElseBlock_HasVariableDeclaration()
         {
             const string inputCode =
@@ -150,8 +149,8 @@ End Sub";
             }
         }
 
-        [TestMethod]
-        [TestCategory("Inspections")]
+        [Test]
+        [Category("Inspections")]
         public void EmptyElseBlock_HasConstDeclaration()
         {
             const string inputCode =
@@ -175,8 +174,8 @@ End Sub";
             }
         }
 
-        [TestMethod]
-        [TestCategory("Inspections")]
+        [Test]
+        [Category("Inspections")]
         public void EmptyElseBlock_HasWhitespace()
         {
             const string inputcode =
@@ -201,8 +200,8 @@ End Sub";
             }
         }
 
-        [TestMethod]
-        [TestCategory("Inspections")]
+        [Test]
+        [Category("Inspections")]
         public void EmptyElseBlock_HasDeclarationStatement()
         {
             const string inputCode =
@@ -226,8 +225,8 @@ End Sub";
             }
         }
 
-        [TestMethod]
-        [TestCategory("Inspections")]
+        [Test]
+        [Category("Inspections")]
         public void EmptyElseBlock_HasExecutableStatement()
         {
             const string inputCode =

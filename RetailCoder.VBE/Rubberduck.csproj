@@ -30,7 +30,7 @@
     <NoWarn>1591</NoWarn>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <UseVSHostingProcess>true</UseVSHostingProcess>
-    <LangVersion>7.1</LangVersion>
+    <LangVersion>7.2</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>full</DebugType>
@@ -43,7 +43,7 @@
     <DocumentationFile>bin\Release\Rubberduck.XML</DocumentationFile>
     <DebugSymbols>true</DebugSymbols>
     <NoWarn>1591</NoWarn>
-    <LangVersion>7.1</LangVersion>
+    <LangVersion>7.2</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'DebugAccess|AnyCPU'">
     <DebugSymbols>true</DebugSymbols>
@@ -57,7 +57,7 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <WarningLevel>4</WarningLevel>
     <Optimize>false</Optimize>
-    <LangVersion>7.1</LangVersion>
+    <LangVersion>7.2</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <DebugSymbols>true</DebugSymbols>
@@ -155,7 +155,7 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <WarningLevel>4</WarningLevel>
     <Optimize>false</Optimize>
-    <LangVersion>7.1</LangVersion>
+    <LangVersion>7.2</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug64|x64'">
     <DebugSymbols>true</DebugSymbols>
@@ -196,7 +196,7 @@
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <WarningLevel>4</WarningLevel>
-    <LangVersion>7.1</LangVersion>
+    <LangVersion>7.2</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release64|x64'">
     <DebugSymbols>true</DebugSymbols>
@@ -251,8 +251,8 @@
       <HintPath>..\packages\HtmlAgilityPack.1.4.9.5\lib\Net45\HtmlAgilityPack.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="ICSharpCode.AvalonEdit">
-      <HintPath>..\packages\AvalonEdit.5.0.3\lib\Net40\ICSharpCode.AvalonEdit.dll</HintPath>
+    <Reference Include="ICSharpCode.AvalonEdit, Version=5.0.3.0, Culture=neutral, PublicKeyToken=9cc39be672370310, processorArchitecture=MSIL">
+      <HintPath>..\packages\AvalonEdit.5.0.4\lib\Net40\ICSharpCode.AvalonEdit.dll</HintPath>
     </Reference>
     <Reference Include="Infralution.Localization.Wpf">
       <HintPath>..\libs\Infralution.Localization.Wpf.dll</HintPath>
@@ -273,6 +273,9 @@
       <EmbedInteropTypes>False</EmbedInteropTypes>
       <HintPath>..\libs\Microsoft.Vbe.Interop.Forms.dll</HintPath>
       <Private>True</Private>
+    </Reference>
+    <Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
+      <HintPath>..\packages\NLog.4.4.12\lib\net45\NLog.dll</HintPath>
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
@@ -307,9 +310,6 @@
     <Reference Include="office">
       <HintPath>..\libs\Office.dll</HintPath>
     </Reference>
-    <Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c">
-      <HintPath>..\packages\NLog.4.0.1\lib\net45\NLog.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="API\VBA\Accessibility.cs" />
@@ -323,6 +323,7 @@
     <Compile Include="Common\ClipboardWriter.cs" />
     <Compile Include="Common\DeclarationExtensions.cs" />
     <Compile Include="Common\HookEventArgs.cs" />
+    <Compile Include="Common\Hotkeys\HotkeyFactory.cs" />
     <Compile Include="Common\Hotkeys\HotkeyInfo.cs" />
     <Compile Include="Common\Hotkeys\Hotkey.cs" />
     <Compile Include="Common\IAttachable.cs" />
@@ -336,7 +337,6 @@
     <Compile Include="Common\VariableNameValidator.cs" />
     <Compile Include="Common\WinAPI\RegistryAccess.cs" />
     <Compile Include="Common\RubberduckHooks.cs" />
-    <Compile Include="Common\TimerHook.cs" />
     <Compile Include="Common\WinAPI\POINT.cs" />
     <Compile Include="Common\WinAPI\Kernel32.cs" />
     <Compile Include="Common\KeyHookEventArgs.cs" />
@@ -350,6 +350,11 @@
     <Compile Include="Navigation\CodeMetrics\CodeMetricsViewModel.cs" />
     <Compile Include="Navigation\CodeMetrics\ICodeMetricsAnalyst.cs" />
     <Compile Include="Navigation\Folders\FolderHelper.cs" />
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
     <Compile Include="Refactorings\EncapsulateField\PropertyGenerator.cs" />
     <Compile Include="Refactorings\ExtractMethod\ExtractedMethod.cs" />
     <Compile Include="Refactorings\ExtractMethod\ExtractMethodParameterClassification.cs" />
@@ -366,11 +371,12 @@
     <Compile Include="RubberduckGuid.cs" />
     <Compile Include="RubberduckProgId.cs" />
     <Compile Include="Settings\CodeInspectionConfigProvider.cs" />
+    <Compile Include="Settings\ExperimentalFeatures.cs" />
+    <Compile Include="Settings\DefaultSettings.cs" />
     <Compile Include="Settings\GeneralConfigProvider.cs" />
     <Compile Include="Settings\HotkeySettings.cs" />
     <Compile Include="Settings\HotkeyConfigProvider.cs" />
     <Compile Include="Settings\MinimumLogLevel.cs" />
-    <Compile Include="Settings\RubberduckHotkey.cs" />
     <Compile Include="Settings\ToDoListConfigProvider.cs" />
     <Compile Include="Settings\UnitTestConfigProvider.cs" />
     <Compile Include="Settings\WhitelistedIdentifierSetting.cs" />
@@ -433,6 +439,7 @@
       <DependentUpon>EmptyUIRefresh.xaml</DependentUpon>
     </Compile>
     <Compile Include="UI\Converters\SubtractionConverter.cs" />
+    <Compile Include="UI\CustomComWrappers\IOleWrapper.cs" />
     <Compile Include="UI\EnvironmentProvider.cs" />
     <Compile Include="UI\Inspections\AggregateInspectionResult.cs" />
     <Compile Include="UI\ModernFolderBrowser.cs" />
@@ -463,6 +470,11 @@
       <DependentUpon>ReorderParametersView.xaml</DependentUpon>
     </Compile>
     <Compile Include="UI\Refactorings\ReorderParameters\ReorderParametersViewModel.cs" />
+    <Compile Include="UI\RubberduckUI.Designer.cs">
+      <DependentUpon>RubberduckUI.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
     <Compile Include="UI\SelectionChangeService.cs" />
     <Compile Include="UnitTesting\Fakes\CurDir.cs" />
     <Compile Include="UnitTesting\Fakes\DoEvents.cs" />
@@ -712,11 +724,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>RubberduckUI.de.resx</DependentUpon>
     </Compile>
-    <Compile Include="UI\RubberduckUI.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>RubberduckUI.resx</DependentUpon>
-    </Compile>
     <Compile Include="UI\Settings\Converters\HotkeyDisplayConverter.cs" />
     <Compile Include="UI\Settings\Converters\AssertModeValueToTextConverter.cs" />
     <Compile Include="UI\Settings\Converters\DelimiterToTextConverter.cs" />
@@ -937,12 +944,7 @@
     <Compile Include="UI\ToDoItems\ToDoExplorerWindow.Designer.cs">
       <DependentUpon>ToDoExplorerWindow.cs</DependentUpon>
     </Compile>
-    <Compile Include="UI\DockableWindowHost.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="UI\DockableWindowHost.Designer.cs">
-      <DependentUpon>DockableWindowHost.cs</DependentUpon>
-    </Compile>
+    <Compile Include="UI\DockableWindowHost.cs" />
     <Compile Include="UI\UnitTesting\TestExplorerWindow.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -1016,6 +1018,11 @@
       <LastGenOutput>RubberduckUI.de.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
     </EmbeddedResource>
+    <EmbeddedResource Include="UI\RubberduckUI.resx">
+      <SubType>Designer</SubType>
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>RubberduckUI.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
     <EmbeddedResource Include="UI\Settings\SettingsForm.resx">
       <DependentUpon>SettingsForm.cs</DependentUpon>
     </EmbeddedResource>
@@ -1039,11 +1046,6 @@
       <LastGenOutput>RubberduckUI.fr.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <EmbeddedResource Include="UI\RubberduckUI.resx">
-      <Generator>PublicResXFileCodeGenerator</Generator>
-      <SubType>Designer</SubType>
-      <LastGenOutput>RubberduckUI.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
     <EmbeddedResource Include="UI\SourceControl\SourceControl.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>SourceControl.Designer.cs</LastGenOutput>
@@ -1063,7 +1065,9 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
+    <None Include="app.config">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="NLog.dll.nlog">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -1147,6 +1151,10 @@
     <Resource Include="Resources\blue-folder-horizontal-open.png" />
     <Resource Include="Resources\blue-folder-horizontal.png" />
     <Resource Include="Resources\lock--exclamation.png" />
+    <None Include="Properties\Settings.settings">
+      <Generator>PublicSettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
     <None Include="Resources\document-smiley-sad.png" />
     <None Include="Resources\document-word.png" />
     <None Include="Resources\document-office.png" />

@@ -14,7 +14,7 @@ skip_commits:
   files:
   - docs/*
   - '**/*.md'
-  #- '**/*.yml'
+  - '**/*.yml'
   - license
   - License.rtf
 branches:
@@ -33,7 +33,6 @@ platform: Any CPU
 cache:
   - packages/ -> **/packages.config
 
-
 install:
   set PATH=C:\Program Files (x86)\MSBuild\15.0\Bin;%PATH%
 assembly_info:
@@ -42,12 +41,22 @@ assembly_info:
   assembly_version: '{version}'
 
 before_build:
-  cinst innosetup
+  - cinst innosetup
+  - cinst codecov
+  - cinst opencover.portable
+  - nuget restore
 build:
   verbosity: minimal
 
+test_script:
+  # we use -returntargetcode to fail the build if tests fail
+  - OpenCover.Console.exe -register:user -returntargetcode -target:"nunit3-console.exe" -targetargs:".\RubberduckTests\bin\Release\RubberduckTests.dll" -output:".\Rubberduck_Coverage.xml"
+
+after_test:
+  - codecov -f "Rubberduck_Coverage.xml"
+
 before_package:
-- copy Rubberduck.Inspections\bin\Release\Rubberduck.Inspections.dll RetailCoder.VBE\bin\Release\Rubberduck.Inspections.dll
+  - copy Rubberduck.Inspections\bin\Release\Rubberduck.Inspections.dll RetailCoder.VBE\bin\Release\Rubberduck.Inspections.dll
 
 for:
   - branches:
